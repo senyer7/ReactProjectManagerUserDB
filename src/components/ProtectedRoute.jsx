@@ -28,7 +28,7 @@ export default function ProtectedRoute({ children }) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
-        <p>Загрузка, проверьте e-mail...</p>
+        <p>Загрузка, проверьте e-mail или перезагрузите страницу...</p>
       </div>
     );
   }
@@ -39,4 +39,5 @@ export default function ProtectedRoute({ children }) {
 
   return children;
 }
+
 
