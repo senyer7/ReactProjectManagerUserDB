@@ -1,0 +1,1665 @@
+author jsx
+
+export default function Author() {
+  const author = "senyer7";
+  let telegram__channel = "https://t.me/ars_stu";
+
+  return (
+    <footer className="author-footer">
+      <div className="author-footer-content">
+        <div className="author-info">
+          <span className="copyright">© 2025 {author}</span>
+          <a
+            href={telegram__channel}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="telegram-link"
+          >
+            Telegram Channel
+          </a>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+
+button jsx
+
+export default function Button({ onClick, text, variant = "primary" }) {
+  const buttonClass = variant === "danger" ? "btn-danger" : "btn-primary";
+
+  return (
+    <button onClick={onClick} className={buttonClass}>
+      {text}
+    </button>
+  );
+}
+
+
+
+input jsx
+
+
+import { forwardRef } from "react";
+
+const Input = forwardRef(function Input({ label, textarea, ...props }, ref) {
+  return (
+    <div className="input-container">
+      <label className="input-label">{label}</label>
+      {textarea ? (
+        <textarea
+          ref={ref}
+          className="input-field textarea-field"
+          {...props}
+        ></textarea>
+      ) : (
+        <input ref={ref} className="input-field" {...props}></input>
+      )}
+    </div>
+  );
+});
+
+export default Input; // ✅ Добавлен default export
+
+
+
+modal jsx
+
+import { createPortal } from "react-dom";
+import { forwardRef, useImperativeHandle, useRef } from "react";
+
+const Modal = forwardRef(function Modal({ children, onClose }, ref) {
+  const dialog = useRef();
+
+  useImperativeHandle(ref, () => {
+    return {
+      open() {
+        dialog.current.showModal();
+      },
+      close() {
+        dialog.current.close();
+      },
+    };
+  });
+
+  function handleClose() {
+    if (onClose) {
+      onClose();
+    }
+    dialog.current.close();
+  }
+
+  return createPortal(
+    <div className="modal-overlay">
+      <dialog ref={dialog} className="modal-dialog" onClose={handleClose}>
+        <div className="modal-content">
+          {children}
+          <div className="mt-6 text-center">
+            <button onClick={handleClose} className="btn-primary">
+              Закрыть
+            </button>
+          </div>
+        </div>
+      </dialog>
+    </div>,
+    document.getElementById("modal-root")
+  );
+});
+
+export default Modal;
+
+newproject jsx
+
+import { useRef, useState } from "react";
+import Input from "./Input.jsx";
+import Modal from "./Modal.jsx";
+import { useImperativeHandle, forwardRef } from "react";
+
+const NewProject = forwardRef(function NewProject({ onAdd, onCancel }, ref) {
+  const title = useRef();
+  const description = useRef();
+  const dueDate = useRef();
+  const [error, setError] = useState(false);
+
+  useImperativeHandle(ref, () => {
+    return {
+      focus() {
+        title.current?.focus();
+      },
+    };
+  });
+
+  function handleSave() {
+    const enteredTitle = title.current?.value?.trim();
+    const enteredDescription = description.current?.value?.trim();
+    const enteredDueDate = dueDate.current?.value?.trim();
+
+    if (!enteredTitle || !enteredDescription || !enteredDueDate) {
+      setError(true);
+      return;
+    }
+
+    setError(false);
+    onAdd({
+      title: enteredTitle,
+      description: enteredDescription,
+      dueDate: enteredDueDate,
+    });
+  }
+
+  return (
+    <>
+      {error && (
+        <div className="error-notification">
+          <h2 className="text-center font-bold uppercase text-lg text-stone-900 mb-4">
+            Ошибка с вводом
+          </h2>
+          <p className="text-center text-sm font-bold text-red-600 mb-2">
+            Пожалуйста, заполните все необходимые поля
+          </p>
+        </div>
+      )}
+
+      <div className="new-project-container">
+        <div className="new-project-actions">
+          <button onClick={onCancel} className="btn-secondary">
+            Отменить
+          </button>
+          <button onClick={handleSave} className="btn-primary">
+            Сохранить
+          </button>
+        </div>
+
+        <div className="new-project-form">
+          <div className="space-y-4">
+            <Input ref={title} type="text" label={"Заголовок"} />
+            <Input ref={description} label={"Описание"} textarea={true} />
+            <Input ref={dueDate} type="date" label={"Дата выполнения"} />
+          </div>
+        </div>
+      </div>
+    </>
+  );
+});
+
+export default NewProject;
+
+newtask jsx
+
+import { useState } from "react";
+
+export default function NewTask({ onAdd }) {
+  const [enteredTask, setEnteredTask] = useState("");
+
+  function handleChange(event) {
+    setEnteredTask(event.target.value);
+  }
+
+  function handleClick() {
+    if (enteredTask.trim() === "") return;
+
+    onAdd(enteredTask);
+    setEnteredTask("");
+  }
+
+  return (
+    <div className="new-task-container">
+      <input
+        onChange={handleChange}
+        value={enteredTask}
+        className="new-task-input"
+        type="text"
+        placeholder="Введите задачу"
+      />
+      <button onClick={handleClick} className="btn-primary new-task-btn">
+        Добавить задачу
+      </button>
+    </div>
+  );
+}
+
+noprojectselected jsx
+
+import Button from "./Button.jsx";
+import img from "../assets/no-projects.png";
+
+export default function NoProjectSelected({ onStartAddProject }) {
+  return (
+    <div className="no-project-container">
+      <img src={img} className="no-project-image" alt="No projects" />
+      <h2 className="no-project-title">Проект не выбран.</h2>
+      <p className="no-project-description">
+        Пожалуйста выберите проект или создайте новый.
+      </p>
+      <Button onClick={onStartAddProject} text={"Создать новый проект"} />
+    </div>
+  );
+}
+
+
+projectsidebar jsx
+
+import Button from "./Button.jsx";
+
+export default function ProjectSideBar({
+  onStartAddProject,
+  projects,
+  onSelectProject,
+  selectedProjectId,
+}) {
+  return (
+    <aside className="project-sidebar">
+      <h2 className="project-sidebar-title">Ваш проект</h2>
+      <div>
+        <Button onClick={onStartAddProject} text="+ Добавить проект" />
+      </div>
+      <ul className="project-list">
+        {projects.map((project) => {
+          const isActive = project.id === selectedProjectId;
+
+          return (
+            <li key={project.id} className="project-item">
+              <button
+                onClick={() => onSelectProject(project.id)}
+                className={`project-btn ${isActive ? "active" : ""}`}
+              >
+                {project.title}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </aside>
+  );
+}
+
+selectedproject jsx
+
+import Tasks from "./Tasks.jsx";
+import Button from "./Button.jsx";
+
+export default function SelectedProject({
+  onAddTask,
+  onDeleteTask,
+  project,
+  onDelete,
+  tasks,
+}) {
+  if (!project) {
+    return (
+      <div className="selected-project">
+        <p className="text-red-500">Проект не найден</p>
+      </div>
+    );
+  }
+
+  const formattedDate = new Date(project.dueDate).toLocaleDateString("ru-RU", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+
+  const safeTasks = Array.isArray(tasks) ? tasks : [];
+
+  return (
+    <div className="selected-project">
+      <header className="project-header">
+        <div className="project-actions">
+          <h1 className="project-title">{project.title}</h1>
+          <Button onClick={onDelete} text="Удалить" variant="danger" />
+        </div>
+        <p className="project-date">{formattedDate}</p>
+        <p className="project-description">{project.description}</p>
+      </header>
+      <Tasks onAdd={onAddTask} onDelete={onDeleteTask} tasksList={safeTasks} />
+    </div>
+  );
+}
+
+tasks jsx
+
+import { useState } from "react";
+
+export default function Tasks({ onAdd, onDelete, tasksList }) {
+  const [enteredTask, setEnteredTask] = useState("");
+
+  function handleChange(event) {
+    setEnteredTask(event.target.value);
+  }
+
+  function handleAddClick() {
+    if (enteredTask.trim() === "") return;
+
+    onAdd(enteredTask);
+    setEnteredTask("");
+  }
+
+  function handleDeleteClick(taskId) {
+    onDelete(taskId);
+  }
+
+  const safeTasks = Array.isArray(tasksList) ? tasksList : [];
+
+  return (
+    <div className="tasks-container">
+      <div className="new-task-container">
+        <input
+          onChange={handleChange}
+          value={enteredTask}
+          className="new-task-input"
+          type="text"
+          placeholder="Введите задачу"
+        />
+        <button onClick={handleAddClick} className="btn-primary new-task-btn">
+          добавить задачу
+        </button>
+      </div>
+
+      {safeTasks.length > 0 ? (
+        <ul className="tasks-list">
+          {safeTasks.map((task) => (
+            <li key={task.id} className="task-item">
+              <span className="task-text">{task.text}</span>
+              <button
+                onClick={() => handleDeleteClick(task.id)}
+                className="task-delete-btn"
+              >
+                Удалить
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="no-tasks-message">Задачи отсутствуют</p>
+      )}
+    </div>
+  );
+}
+
+app jsx
+
+import NewProject from "./components/NewProject.jsx";
+import ProjectSideBar from "./components/ProjectSideBar.jsx";
+import NoProjectSelected from "./components/NoProjectSelected.jsx";
+import SelectedProject from "./components/SelectedProject.jsx";
+import Author from "./components/Author.jsx";
+import { useEffect, useState, useRef } from "react"; // Добавлен useRef
+import { supabase } from "../supabase.js";
+
+function App() {
+  const [projectsState, setProjectsState] = useState({
+    selectedProjectId: undefined,
+    projects: [],
+    tasks: [],
+  });
+  const [notification, setNotification] = useState({
+    show: false,
+    type: "",
+    message: "",
+  });
+
+  // Добавлен useRef
+  const newProjectRef = useRef();
+
+  const showNotification = (type, message) => {
+    setNotification({ show: true, type, message });
+    setTimeout(
+      () => setNotification({ show: false, type: "", message: "" }),
+      3000
+    );
+  };
+
+  // Загрузка проектов при монтировании компонента
+  useEffect(() => {
+    async function loadProjects() {
+      try {
+        const { data: projects, error: errorProject } = await supabase
+          .from("Projects")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (errorProject) {
+          console.error("Ошибка загрузки проектов:", errorProject);
+          return;
+        }
+
+        setProjectsState((prevState) => ({
+          ...prevState,
+          projects: projects || [],
+        }));
+      } catch (error) {
+        console.error("Ошибка при загрузке проектов:", error);
+      }
+    }
+
+    loadProjects();
+  }, []);
+
+  // Загрузка задач при изменении выбранного проекта
+  useEffect(() => {
+    async function loadTasks() {
+      if (!projectsState.selectedProjectId) return;
+
+      try {
+        const { data: tasks, error: errorTask } = await supabase
+          .from("Tasks")
+          .select("*")
+          .eq("projectId", projectsState.selectedProjectId)
+          .order("created_at", { ascending: false });
+
+        if (errorTask) {
+          console.error("Ошибка загрузки задач:", errorTask);
+          return;
+        }
+
+        setProjectsState((prevState) => ({
+          ...prevState,
+          tasks: tasks || [],
+        }));
+      } catch (error) {
+        console.error("Ошибка при загрузке задач:", error);
+      }
+    }
+
+    loadTasks();
+  }, [projectsState.selectedProjectId]);
+
+  // Добавление задачи
+  async function handleAddTask(text) {
+    if (!projectsState.selectedProjectId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("Tasks")
+        .insert({
+          projectId: projectsState.selectedProjectId,
+          text: text,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Ошибка добавления задачи:", error);
+        return;
+      }
+
+      setProjectsState((prevState) => ({
+        ...prevState,
+        tasks: [data, ...prevState.tasks],
+      }));
+    } catch (error) {
+      console.error("Ошибка при добавлении задачи:", error);
+    }
+  }
+
+  // Удаление задачи
+  async function handleDeleteTask(id) {
+    try {
+      const { error } = await supabase.from("Tasks").delete().eq("id", id);
+
+      if (error) {
+        console.error("Ошибка удаления задачи:", error);
+        return;
+      }
+
+      setProjectsState((prevState) => ({
+        ...prevState,
+        tasks: prevState.tasks.filter((task) => task.id !== id),
+      }));
+    } catch (error) {
+      console.error("Ошибка при удалении задачи:", error);
+    }
+  }
+
+  // Начало добавления проекта
+  function handleStartAddProject() {
+    setProjectsState((prevState) => ({
+      ...prevState,
+      selectedProjectId: null,
+    }));
+  }
+
+  // Отмена добавления проекта
+  function handleCancelAddProject() {
+    setProjectsState((prevState) => ({
+      ...prevState,
+      selectedProjectId: undefined,
+    }));
+  }
+
+  // Добавление проекта
+  async function handleAddProject(projectData) {
+    try {
+      const { data, error } = await supabase
+        .from("Projects")
+        .insert({
+          title: projectData.title,
+          description: projectData.description,
+          dueDate: projectData.dueDate,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Ошибка добавления проекта:", error);
+        return;
+      }
+
+      setProjectsState((prevState) => ({
+        ...prevState,
+        selectedProjectId: undefined,
+        projects: [...prevState.projects, data],
+      }));
+
+      showNotification("success", "Проект успешно создан!");
+    } catch (error) {
+      console.error("Ошибка при добавлении проекта:", error);
+      showNotification("error", "Ошибка при создании проекта");
+    }
+  }
+
+  // Выбор проекта
+  async function handleSelectProject(id) {
+    setProjectsState((prevState) => ({
+      ...prevState,
+      selectedProjectId: id,
+      tasks: [], // Очищаем задачи перед загрузкой новых
+    }));
+  }
+
+  // Удаление проекта
+  async function handleDeleteProject() {
+    if (!projectsState.selectedProjectId) {
+      console.error("Не выбран проект для удаления");
+      return;
+    }
+
+    try {
+      // Сначала удаляем все задачи проекта
+      const { error: tasksError } = await supabase
+        .from("Tasks")
+        .delete()
+        .eq("projectId", projectsState.selectedProjectId);
+
+      if (tasksError) {
+        console.error("Ошибка удаления задач проекта:", tasksError);
+      }
+
+      // Затем удаляем сам проект
+      const { error: projectError } = await supabase
+        .from("Projects")
+        .delete()
+        .eq("id", projectsState.selectedProjectId);
+
+      if (projectError) {
+        console.error("Ошибка удаления проекта:", projectError);
+        throw projectError;
+      }
+
+      // Обновляем локальное состояние
+      setProjectsState((prevState) => ({
+        ...prevState,
+        selectedProjectId: undefined,
+        projects: prevState.projects.filter(
+          (project) => project.id !== prevState.selectedProjectId
+        ),
+        tasks: [],
+      }));
+
+      showNotification("success", "Проект успешно удален!");
+    } catch (error) {
+      console.error("Ошибка при удалении проекта:", error);
+      showNotification("error", "Ошибка при удалении проекта");
+    }
+  }
+
+  // Находим выбранный проект
+  const selectedProject = projectsState.projects.find(
+    (project) => project.id === projectsState.selectedProjectId
+  );
+
+  // Определяем отображаемый контент
+  let content;
+
+  if (projectsState.selectedProjectId === null) {
+    content = (
+      <NewProject
+        ref={newProjectRef}
+        onAdd={handleAddProject}
+        onCancel={handleCancelAddProject}
+      />
+    );
+  } else if (selectedProject) {
+    content = (
+      <SelectedProject
+        onAddTask={handleAddTask}
+        onDeleteTask={handleDeleteTask}
+        onDelete={handleDeleteProject}
+        project={selectedProject}
+        tasks={projectsState.tasks}
+      />
+    );
+  } else {
+    content = <NoProjectSelected onStartAddProject={handleStartAddProject} />;
+  }
+
+  return (
+    <div className="app-container">
+      {/* Уведомление */}
+      {notification.show && (
+        <div className={`notification ${notification.type}`}>
+          {notification.type === "success" ? "✅" : "❌"} {notification.message}
+        </div>
+      )}
+
+      <div className="main-content">
+        <ProjectSideBar
+          projects={projectsState.projects}
+          onStartAddProject={handleStartAddProject}
+          onSelectProject={handleSelectProject}
+          selectedProjectId={projectsState.selectedProjectId}
+        />
+
+        <div className="content-area">{content}</div>
+      </div>
+
+      <Author />
+    </div>
+  );
+}
+
+export default App;
+
+index css
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Unbounded";
+  src: url(/src/assets/fonts/Unbounded-Regular.ttf);
+  font-display: swap;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+  --danger: #ef4444;
+  --danger-dark: #dc2626;
+  --success: #10b981;
+  --success-dark: #059669;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+}
+
+body {
+  font-family: "Unbounded", -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  color: var(--gray-700);
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+/* ===== ОСНОВНОЙ КОНТЕЙНЕР ===== */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+  gap: 1.5rem;
+}
+
+.content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 1024px) {
+  .main-content {
+    flex-direction: row;
+    padding: 1.5rem;
+    align-items: flex-start;
+  }
+
+  .content-area {
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--gray-200);
+  }
+}
+
+/* ===== КНОПКИ ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  box-shadow: var(--shadow);
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+  box-shadow: var(--shadow);
+}
+
+.btn-danger:hover {
+  background: var(--danger-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-secondary {
+  background: white;
+  color: var(--primary);
+  border: 1px solid var(--gray-300);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-secondary:hover {
+  background: var(--gray-50);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  border-radius: var(--radius-sm);
+}
+
+/* ===== INPUT ===== */
+.input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-bottom: 1rem;
+}
+
+.input-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--gray-600);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.input-field {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius);
+  background-color: white;
+  color: var(--gray-800);
+  font-family: inherit;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input-field::placeholder {
+  color: var(--gray-400);
+}
+
+.textarea-field {
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.5;
+  border-radius: var(--radius);
+}
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-dialog {
+  border: none;
+  border-radius: var(--radius-xl);
+  padding: 0;
+  background: transparent;
+  max-width: 95vw;
+  width: 100%;
+  max-width: 400px;
+}
+
+.modal-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background: white;
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+
+/* ===== NEWPROJECT ===== */
+.new-project-container {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.new-project-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+  flex-wrap: wrap;
+}
+
+.new-project-form {
+  background: white;
+  padding: 1.5rem;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--gray-200);
+}
+
+.error-notification {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  animation: fadeIn 0.2s ease-out;
+  font-size: 0.875rem;
+}
+
+/* ===== NEWTASK ===== */
+.new-task-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.new-task-input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.new-task-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+@media (min-width: 640px) {
+  .new-task-container {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+/* ===== NOPROJECTSELECTED ===== */
+.no-project-container {
+  text-align: center;
+  padding: 2rem 1rem;
+  max-width: 400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.no-project-image {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  opacity: 0.7;
+  filter: grayscale(100%);
+  border-radius: var(--radius);
+}
+
+.no-project-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin-bottom: 0.75rem;
+}
+
+.no-project-description {
+  color: var(--gray-500);
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+  font-size: 0.875rem;
+}
+
+/* ===== PROJECTSIDEBAR ===== */
+.project-sidebar {
+  background: white;
+  padding: 1.5rem;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--gray-200);
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.project-sidebar-title {
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.project-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.project-item {
+  margin-bottom: 0.5rem;
+}
+
+.project-btn {
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--gray-50);
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.project-btn:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.project-btn.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: var(--shadow);
+}
+
+.project-btn::before {
+  content: "📁";
+  font-size: 0.875rem;
+}
+
+/* ===== SELECTEDPROJECT ===== */
+.selected-project {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.project-header {
+  text-align: center;
+  border-bottom: 1px solid var(--gray-200);
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.project-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.project-title::before {
+  content: "📋";
+  font-size: 1.25rem;
+}
+
+.project-date {
+  color: var(--gray-500);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.project-description {
+  color: var(--gray-600);
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.project-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+/* ===== TASKS ===== */
+.tasks-container {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.tasks-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.tasks-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tasks-title::before {
+  content: "✅";
+  font-size: 1rem;
+}
+
+.tasks-count {
+  background: var(--gray-100);
+  color: var(--gray-600);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.tasks-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.task-item {
+  background: white;
+  padding: 0.875rem;
+  border-radius: var(--radius);
+  margin-bottom: 0.75rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+  border-left: 3px solid var(--primary);
+  animation: taskAppear 0.3s ease-out;
+}
+
+@keyframes taskAppear {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.task-item:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.task-text {
+  color: var(--gray-800);
+  font-weight: 500;
+  flex: 1;
+  margin-right: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.task-delete-btn {
+  background: transparent;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  padding: 0.375rem;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.task-delete-btn:hover {
+  background: #fef2f2;
+  color: var(--danger-dark);
+}
+
+.no-tasks-message {
+  text-align: center;
+  color: var(--gray-400);
+  padding: 2rem;
+  font-style: italic;
+  font-size: 0.875rem;
+  border-radius: var(--radius);
+}
+
+/* ===== AUTHOR FOOTER ===== */
+.author-footer {
+  background: var(--gray-50);
+  padding: 1rem 0;
+  margin-top: auto;
+  text-align: center;
+  width: 100%;
+  border-top: 1px solid var(--gray-200);
+}
+
+.author-footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.author-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.copyright {
+  font-size: 0.75rem;
+  color: var(--gray-500);
+  font-weight: 500;
+}
+
+.telegram-link {
+  font-size: 0.75rem;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem;
+  border-radius: var(--radius);
+}
+
+.telegram-link:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+  background: var(--gray-100);
+}
+
+.telegram-link::before {
+  content: "📢";
+}
+
+/* Уведомления */
+.notification {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.875rem 1.25rem;
+  border-radius: var(--radius);
+  color: white;
+  font-weight: 600;
+  z-index: 1001;
+  animation: slideInRight 0.3s ease-out;
+  box-shadow: var(--shadow-lg);
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.notification.success {
+  background: var(--success);
+  border-radius: var(--radius-lg);
+}
+
+.notification.error {
+  background: var(--danger);
+  border-radius: var(--radius-lg);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Анимации */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Утилиты */
+.text-center {
+  text-align: center;
+}
+.text-left {
+  text-align: left;
+}
+.text-right {
+  text-align: right;
+}
+
+.mb-1 {
+  margin-bottom: 0.25rem;
+}
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+.mb-3 {
+  margin-bottom: 0.75rem;
+}
+.mb-4 {
+  margin-bottom: 1rem;
+}
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+
+.mt-1 {
+  margin-top: 0.25rem;
+}
+.mt-2 {
+  margin-top: 0.5rem;
+}
+.mt-3 {
+  margin-top: 0.75rem;
+}
+.mt-4 {
+  margin-top: 1rem;
+}
+.mt-6 {
+  margin-top: 1.5rem;
+}
+
+.p-1 {
+  padding: 0.25rem;
+}
+.p-2 {
+  padding: 0.5rem;
+}
+.p-3 {
+  padding: 0.75rem;
+}
+.p-4 {
+  padding: 1rem;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .content-area {
+    padding-left: 0;
+    border-left: none;
+  }
+
+  .project-sidebar {
+    max-width: 100%;
+    margin-bottom: 1.5rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .new-project-actions,
+  .project-actions {
+    flex-direction: column;
+  }
+
+  .new-project-actions button,
+  .project-actions button {
+    width: 100%;
+  }
+
+  .task-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .task-text {
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+  }
+
+  .task-delete-btn {
+    align-self: flex-end;
+  }
+
+  .author-info {
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .new-project-form {
+    border-radius: var(--radius-lg);
+  }
+
+  .modal-content {
+    border-radius: var(--radius-lg);
+  }
+}
+
+@media (max-width: 640px) {
+  .new-project-form {
+    padding: 1.25rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .modal-dialog {
+    padding: 1rem;
+  }
+
+  .project-title {
+    font-size: 1.25rem;
+  }
+
+  .tasks-title {
+    font-size: 1rem;
+  }
+
+  .btn {
+    border-radius: var(--radius-sm);
+  }
+
+  .input-field {
+    border-radius: var(--radius-sm);
+  }
+
+  .task-item {
+    border-radius: var(--radius-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 0.75rem;
+  }
+
+  .project-sidebar {
+    padding: 1.25rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .new-project-form {
+    padding: 1rem;
+    border-radius: var(--radius);
+  }
+
+  .task-item {
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .notification {
+    right: 0.5rem;
+    left: 0.5rem;
+    border-radius: var(--radius);
+  }
+}
+
+/* Стили для состояния загрузки */
+.loading-spinner {
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid var(--primary);
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Компактные стили для списков */
+.compact-list {
+  max-height: 400px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray-300) transparent;
+  border-radius: var(--radius);
+}
+
+.compact-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.compact-list::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 2px;
+}
+
+.compact-list::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: 2px;
+}
+
+.compact-list::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-400);
+}
+
+/* Улучшенная читаемость и компактность */
+.enhanced-text {
+  line-height: 1.4;
+  font-size: 0.875rem;
+}
+
+.enhanced-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
+  transition: all 0.2s ease;
+}
+
+.enhanced-card:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+/* Дополнительные утилиты для радиусов */
+.rounded-sm {
+  border-radius: var(--radius-sm);
+}
+
+.rounded {
+  border-radius: var(--radius);
+}
+
+.rounded-md {
+  border-radius: var(--radius-md);
+}
+
+.rounded-lg {
+  border-radius: var(--radius-lg);
+}
+
+.rounded-xl {
+  border-radius: var(--radius-xl);
+}
+
+.rounded-2xl {
+  border-radius: var(--radius-2xl);
+}
+
+/* Плавные переходы */
+.smooth-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Ховер-эффекты */
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+/* Фокус-состояния */
+.focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--primary);
+}
+
+main jsx
+
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App.jsx";
+import "./index.css";
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+index html
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project Manager с БД</title>
+  </head>
+  <body class="bg-stone-50">
+    <div id="modal-root"></div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+
+
+ВАЖНО: Создал в БД ещё 1 таблицу: Users. У него id (int8), name (text), password (text). Tasks id соединен с Projects id.
+
